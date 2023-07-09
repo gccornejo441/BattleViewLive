@@ -1,4 +1,6 @@
-﻿namespace BattleViewLive.Services.Interfaces
+﻿using BattleViewLive.Api.Entities;
+
+namespace BattleViewLive.Services.Interfaces
 {
     public interface IDbService
     {

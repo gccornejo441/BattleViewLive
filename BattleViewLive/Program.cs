@@ -1,12 +1,13 @@
 using BattleViewLive.Api.Entities;
 using BattleViewLive.Authentication;
 using BattleViewLive.Data;
-using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
-using Microsoft.AspNetCore.Components.Web;
 using Microsoft.EntityFrameworkCore;
-Using Dapper
+using Dapper;
+using BattleViewLive.Services.Interfaces;
+using BattleViewLive.Services;
+using Npgsql;
 
 DefaultTypeMap.MatchNamesWithUnderscores = true;
 
@@ -18,10 +19,13 @@ builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddDbContext<BattleviewContext>(options =>
 {
-    options.UseNpgsql(builder.Configuration.GetConnectionString("connectionString"));
+    var conStrBuilder = new NpgsqlConnectionStringBuilder(builder.Configuration.GetConnectionString("connectionString"));
+    options.UseNpgsql(conStrBuilder.ConnectionString);
 });
 builder.Services.AddScoped<ProtectedSessionStorage>();
 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
+builder.Services.AddSingleton<UserService>();
+builder.Services.AddSingleton<IDbService, DbService>();
 builder.Services.AddScoped<UserAccountService>();
 builder.Services.AddSingleton<WeatherForecastService>();
 

@@ -1,5 +1,6 @@
 ﻿using BattleViewLive.Api.Entities;
 using BattleViewLive.Services.Interfaces;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace BattleViewLive.Services
 {
@@ -11,23 +12,28 @@ namespace BattleViewLive.Services
             _dbService = dbService;
         }
 
-
-        public async Task<User> RegisterUserAsync(RegisterUser user)
+        public Task<bool> DeleteUser(int userId)
         {
-            var result = await _dbService.Insert<int>"INSERT INTO public.users (userid, username, email, password_hash, user_role, created_by, modified_by) VALUES (@UserId, @UserName, @Email, @PasswordHash, @UserRol, @CreatedBy, @ModifiedBy)", user);
-            return true;
+            throw new NotImplementedException();
         }
+
         public Task<List<User>> GetUserList()
         {
             throw new NotImplementedException();
         }
 
+        public async Task<bool> RegisterUserAsync(User user, string updatedBy)
+        {
+            // Set the CreatedBy and ModifiedBy values
+            user.CreatedBy = updatedBy;
+            user.ModifiedBy = updatedBy;
+
+            var result = await _dbService.Insert<User>("INSERT INTO public.users (username, email, password_hash, user_role, created_by, modified_by) VALUES (@UserName, @Email, @PasswordHash, @UserRole, @CreatedBy, @ModifiedBy)", user);
+            return true;
+
+        }
 
         public Task<User> UpdateUser(User user)
-        {
-            throw new NotImplementedException();
-        }
-        public Task<bool> DeleteUser(int key)
         {
             throw new NotImplementedException();
         }

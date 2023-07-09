@@ -1,5 +1,6 @@
 ﻿namespace BattleViewLive.Services
 {
+    using BattleViewLive.Api.Entities;
     using BattleViewLive.Services.Interfaces;
     using Dapper;
     using Npgsql;
@@ -48,5 +49,6 @@
             result = _db.Query<T>(command, parms).FirstOrDefault();
             return result;
         }
+
     }
 }

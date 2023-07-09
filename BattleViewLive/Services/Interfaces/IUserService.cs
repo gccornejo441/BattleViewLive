@@ -4,9 +4,9 @@ namespace BattleViewLive.Services.Interfaces
 {
     public interface IUserService
     {
-        public Task<User> RegisterUserAsync(RegisterUser user);
+        Task<bool> RegisterUserAsync(User user, string updatedBy);
         Task<List<User>> GetUserList();
         Task<User> UpdateUser(User user);
-        Task<bool> DeleteUser(int key);
+        Task<bool> DeleteUser(int userId);
     }
 }

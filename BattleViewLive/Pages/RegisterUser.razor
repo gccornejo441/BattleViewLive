@@ -1,16 +1,24 @@
-﻿@page "/signup"
+﻿@page "/register"
 @using BattleViewLive.Api.Entities
 @using BattleViewLive.Authentication;
 @using BattleViewLive.Services.Interfaces;
+@using Microsoft.AspNetCore.Mvc;
+@using BattleViewLive.Services;
 
 @inject IJSRuntime _jsRuntime
 @inject AuthenticationStateProvider authStateProvider
 @inject NavigationManager navManager
 @inject UserAccountService userAccountService
+@inject UserService _userService
+
+@*Without this attribute the page is not fully secure, since the user can simpley type in the address in the URL bar*@
+@attribute [Authorize(Roles = "Administrator")]
+
+<PageTitle>Register User | BattleViewLive</PageTitle>
 
 <div class="container col-sm-4">
     <div class="row justify-content-center">
-        <EditForm Model="@user" OnValidSubmit="@RegisterUser">
+        <EditForm Model="@user" OnValidSubmit="@RegisteringUser">
             <DataAnnotationsValidator />
             <div class="signup-box">
                 <AuthorizeView Roles="Administrator">
@@ -30,16 +38,19 @@
                 <div class="error-message">
                     <ValidationMessage For="@(()=> user.PasswordHash)" />
                 </div>
-
-                <AuthorizeView Roles="Administator">
+                <InputText type="email" @bind-Value="user.Email" placeholder="email" />
+                <div class="error-message">
+                    <ValidationMessage For="@(()=> user.Email)" />
+                </div>
+                <AuthorizeView Roles="Administrator">
                     <Authorized Context="Auth">
                         <InputSelect @bind-Value="user.UserRole">
-                            <option class="select-options text-dark" value="1">Administator</option>
-                            <option class="select-options text-dark" value="2">User</option>
+                            <option class="select-options text-dark" value="Administrator">Administrator</option>
+                            <option class="select-options text-dark" value="User">User</option>
                         </InputSelect>
                     </Authorized>
                 </AuthorizeView>
-                <AuthorizeView Roles="Administator">
+                <AuthorizeView Roles="Administrator">
                     <Authorized Context="Auth">
                         <input type="submit" class="btn btn-sm" value="Create" />
                     </Authorized>
@@ -59,9 +70,8 @@
 @code {
     [CascadingParameter]
     private Task<AuthenticationState> authenticationState { get; set; }
-    private RegisterUser user { get; set; } = new RegisterUser();
+    private User user { get; set; } = new User();
 
-    public IUserService userService;
     public bool IsUserAuthenticated;
     public bool IsUserAdmin;
 
@@ -72,37 +82,26 @@
         {
             IsUserAuthenticated = true;
         }
-        if (authState.User.IsInRole("Administator"))
+        if (authState.User.IsInRole("Administrator"))
         {
             IsUserAdmin = true;
         }
 
     }
 
-    public async Task<bool> RegisterUser()
+    private async Task RegisteringUser()
     {
-        var returnedUser = await userService.RegisterUserAsync(user);
+        var authState = await authenticationState;
+        bool registrationSuccessful = await _userService.RegisterUserAsync(user, authState.User.Identity.Name);
 
-        if (returnedUser != null)
+        if (registrationSuccessful)
         {
-            if (IsUserAdmin)
-            {
-                user = new RegisterUser();
-                user.UserRole = "Administator";
-                StateHasChanged();
-            }
-            else
-            {
-                var customAuthStateProvider = (CustomAuthenticationStateProvider)authStateProvider;
-                await customAuthStateProvider.UpdateAuthenticationState(new UserSession
-                    {
-                        Username = returnedUser.Username,
-                        UserRole = returnedUser.UserRole
-                    });
-
-                navManager.NavigateTo("/", true);
-            }
+            // Redirect to a success page or perform other actions
+            navManager.NavigateTo("/", true);
         }
-        return await Task.FromResult(true);
+        else
+        {
+            await _jsRuntime.InvokeVoidAsync("alert", "Invalid User Name or Password");
+        }
     }
 }
