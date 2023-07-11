@@ -8,6 +8,8 @@ using Dapper;
 using BattleViewLive.Services.Interfaces;
 using BattleViewLive.Services;
 using Npgsql;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 DefaultTypeMap.MatchNamesWithUnderscores = true;
 
@@ -15,6 +17,33 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddAuthenticationCore();
+
+// Adding JWT Services
+// An authentication scheme is named when the authentication service is configured during authentication.
+// two authentication handlers have been added: one for cookies and one for bearer.
+
+builder.Services.AddAuthentication()
+        .AddCookie(options =>
+        {
+            options.LoginPath = "/Account/Unauthorized/";
+            options.AccessDeniedPath = "/Account/Forbidden/";
+        })
+        .AddJwtBearer(options =>
+        {
+            // Setting up with custom options
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = true,  // API will check for valid user based on view authority
+                ValidateAudience = true,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true,
+                ValidIssuer = builder.Configuration["Jwt:Issuer"],
+                ValidAudience = builder.Configuration["Jwt:Audience"],
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+            };
+        });
+
+
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddDbContext<BattleviewContext>(options =>
@@ -48,4 +77,6 @@ app.UseRouting();
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
 
+app.UseAuthorization();
+app.UseAuthentication();
 app.Run();

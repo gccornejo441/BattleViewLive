@@ -1,6 +1,7 @@
 ﻿using BattleViewLive.Api.Entities;
 using BattleViewLive.Services.Interfaces;
 using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace BattleViewLive.Services
 {
@@ -12,14 +13,22 @@ namespace BattleViewLive.Services
             _dbService = dbService;
         }
 
-        public Task<bool> DeleteUser(int userId)
+        public async Task<bool> DeleteUser(int userId)
         {
-            throw new NotImplementedException();
+            var deleteuser = await _dbService.Delete<int>("DELETE FROM public.users WHERE userid =@UserId", new { userId = userId });
+            return true;
         }
 
-        public Task<List<User>> GetUserList()
+        public async Task<User> GetUserByUserNameAsync(string userName)
         {
-            throw new NotImplementedException();
+            var username = await _dbService.GetAsync<User>("SELECT * FROM public.users WHERE username = @UserName", new { username = userName });
+            return username;
+        }
+
+        public async Task<List<User>> GetUserList()
+        {
+            var userList = await _dbService.GetAll<User>("SELECT * FROM public.users", new { });
+            return userList;
         }
 
         public async Task<bool> RegisterUserAsync(User user, string updatedBy)
@@ -33,9 +42,11 @@ namespace BattleViewLive.Services
 
         }
 
-        public Task<User> UpdateUser(User user)
+        public async Task<User> UpdateUser(User user, string modifiedBy)
         {
-            throw new NotImplementedException();
+            user.ModifiedBy = modifiedBy;
+            var updateEmployee = await _dbService.Update<int>("Update public.users SET username=@UserName, email=@Email, password_hash=@PasswordHash, modified_by=@ModifiedBy WHERE userid=@userId", user);
+            return user;
         }
     }
 }

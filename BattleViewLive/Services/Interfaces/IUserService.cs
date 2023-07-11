@@ -6,7 +6,10 @@ namespace BattleViewLive.Services.Interfaces
     {
         Task<bool> RegisterUserAsync(User user, string updatedBy);
         Task<List<User>> GetUserList();
-        Task<User> UpdateUser(User user);
+        Task<User> GetUserByUserNameAsync(string userName)
+        {
+            (string userName);
+        Task<User> UpdateUser(User user, string modifiedBy);
         Task<bool> DeleteUser(int userId);
     }
 }
